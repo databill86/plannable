@@ -55,3 +55,47 @@ export class Vertex<T> {
  * adjacency list representation of a graph
  */
 export type Graph<T> = Map<Vertex<T>, Vertex<T>[]>;
+
+export function getConnectedComponents(adjList: Int16Array[]) {
+    const len = adjList.length;
+    let visited = new Int8Array(len);
+    let visitedCopy = visited.slice();
+    const components: Int16Array[][] = [];
+    for (let i = 0; i < len; i++) {
+        if (!visited[i]) {
+            DFS(i, visitedCopy, adjList);
+
+            const component: number[] = [];
+            for (let j = 0; j < len; j++) {
+                if (visitedCopy[j] && !visited[j]) {
+                    component.push(j);
+                }
+            }
+            components.push(
+                adjList.map((list, n) =>
+                    component.includes(n)
+                        ? list.filter(j => component.includes(j))
+                        : new Int16Array()
+                )
+            );
+            visited = visitedCopy;
+            visitedCopy = visitedCopy.slice();
+        }
+    }
+    return components;
+}
+
+function DFS(start: number, visited: Int8Array, adjList: Int16Array[]) {
+    const stack = [start];
+    while (stack.length) {
+        start = stack.pop()!;
+        if (!visited[start]) {
+            visited[start] = 1;
+        }
+
+        const neighbors = adjList[start];
+        for (const n of neighbors) {
+            if (!visited[n]) stack.push(n);
+        }
+    }
+}
